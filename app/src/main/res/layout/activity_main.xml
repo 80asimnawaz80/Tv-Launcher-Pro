@@ -1,0 +1,641 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingStart="28dp"
+        android:paddingTop="14dp"
+        android:paddingEnd="28dp"
+        android:paddingBottom="10dp">
+
+        <!-- HEADER -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.analogtv.launcher.IconView
+                android:id="@+id/logo"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+                app:iconType="tv" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/appTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Analog TV"
+                    android:textColor="#FFFFFF"
+                    android:textSize="30sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Live TV • Entertainment • More"
+                    android:textColor="#E0FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="italic" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <com.analogtv.launcher.IconView
+                android:id="@+id/wifiIcon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                app:iconType="wifi" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="#55FFFFFF" />
+
+            <com.analogtv.launcher.IconView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                app:iconType="clock" />
+
+            <TextClock
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:format12Hour="hh:mm a"
+                android:format24Hour="hh:mm a"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="#55FFFFFF" />
+
+            <com.analogtv.launcher.IconView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                app:iconType="calendar" />
+
+            <TextClock
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:format12Hour="EEE, MMM dd, yyyy"
+                android:format24Hour="EEE, MMM dd, yyyy"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp" />
+
+            <com.analogtv.launcher.IconView
+                android:id="@+id/btnTopSettings"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="22dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="11dp"
+                app:iconType="gear" />
+
+            <com.analogtv.launcher.IconView
+                android:id="@+id/btnInfo"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="10dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="11dp"
+                app:iconType="info" />
+        </LinearLayout>
+
+        <!-- MIDDLE -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="10dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.36"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/weatherCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="22dp"
+                    android:paddingEnd="18dp">
+
+                    <TextView
+                        android:id="@+id/weatherIcon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⛅"
+                        android:textSize="60sp" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="18dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Weather"
+                            android:textColor="#FFFFFF"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/weatherTemp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="--°C"
+                            android:textColor="#FFFFFF"
+                            android:textSize="44sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/weatherDesc"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Loading..."
+                            android:textColor="#FFFFFF"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:id="@+id/weatherCity"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📍 Islamabad"
+                            android:textColor="#E0FFFFFF"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/clockCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="14dp">
+
+                    <com.analogtv.launcher.AnalogClockView
+                        android:id="@+id/analogClock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent" />
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="70dp"
+                        android:layout_marginStart="14dp"
+                        android:layout_marginEnd="14dp"
+                        android:background="#55FFFFFF" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextClock
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:format12Hour="hh:mm a"
+                            android:format24Hour="hh:mm a"
+                            android:textColor="#FFFFFF"
+                            android:textSize="34sp"
+                            android:textStyle="bold" />
+
+                        <TextClock
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:format12Hour="EEE, MMM dd, yyyy"
+                            android:format24Hour="EEE, MMM dd, yyyy"
+                            android:textColor="#E0FFFFFF"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/pipArea"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="16dp"
+                android:layout_weight="0.64">
+
+                <FrameLayout
+                    android:id="@+id/pipCard"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <androidx.media3.ui.PlayerView
+                        android:id="@+id/pipPlayer"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        app:resize_mode="zoom"
+                        app:show_buffering="never"
+                        app:surface_type="texture_view"
+                        app:use_controller="false" />
+
+                    <TextView
+                        android:id="@+id/liveBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="12dp"
+                        android:paddingStart="12dp"
+                        android:paddingTop="4dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="4dp"
+                        android:text="● LIVE"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:layout_gravity="bottom"
+                        android:background="#99000000"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp">
+
+                        <com.analogtv.launcher.IconView
+                            android:layout_width="26dp"
+                            android:layout_height="26dp"
+                            app:iconType="tv" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Analog TV"
+                            android:textColor="#FFFFFF"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="1" />
+
+                        <TextView
+                            android:id="@+id/qualityText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Quality : Connecting"
+                            android:textColor="#FFFFFF"
+                            android:textSize="16sp" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:gravity="bottom"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:id="@+id/sig1"
+                                android:layout_width="6dp"
+                                android:layout_height="8dp"
+                                android:layout_marginEnd="3dp" />
+
+                            <View
+                                android:id="@+id/sig2"
+                                android:layout_width="6dp"
+                                android:layout_height="14dp"
+                                android:layout_marginEnd="3dp" />
+
+                            <View
+                                android:id="@+id/sig3"
+                                android:layout_width="6dp"
+                                android:layout_height="20dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </FrameLayout>
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- THEME + SIZE BAR -->
+        <LinearLayout
+            android:id="@+id/optionsBar"
+            android:layout_width="match_parent"
+            android:layout_height="62dp"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp">
+
+            <com.analogtv.launcher.IconView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                app:iconType="palette" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="Theme Color:"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:id="@+id/dot0"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_margin="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <View
+                    android:id="@+id/dot1"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_margin="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <View
+                    android:id="@+id/dot2"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_margin="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <View
+                    android:id="@+id/dot3"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_margin="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <View
+                    android:id="@+id/dot4"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_margin="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="34dp"
+                android:layout_marginStart="14dp"
+                android:layout_marginEnd="18dp"
+                android:background="#55FFFFFF" />
+
+            <com.analogtv.launcher.IconView
+                android:id="@+id/btnFullscreen"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="6dp"
+                app:iconType="expand" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Size:"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btnMinus"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="14dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="−"
+                android:textColor="#FFFFFF"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/sizeLabel"
+                android:layout_width="96dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Small"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/btnPlus"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="+"
+                android:textColor="#FFFFFF"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- APP TILES -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="108dp"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/tileYoutube"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <com.analogtv.launcher.IconView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    app:iconType="youtube" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="YouTube"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/tilePlayStore"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <com.analogtv.launcher.IconView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    app:iconType="playstore" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Play Store"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/tilePlayer"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <com.analogtv.launcher.IconView
+                    android:id="@+id/iconPlayer"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    app:iconType="player" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Player"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/tileSettings"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <com.analogtv.launcher.IconView
+                    android:id="@+id/iconSettings"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    app:iconType="gear" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Settings"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/tileAllApps"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <com.analogtv.launcher.IconView
+                    android:id="@+id/iconApps"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    app:iconType="apps" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="All Apps"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/footer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:letterSpacing="0.25"
+            android:text="ENJOY YOUR FAVORITE CHANNELS"
+            android:textColor="#CCFFFFFF"
+            android:textSize="13sp"
+            android:textStyle="italic" />
+    </LinearLayout>
+</FrameLayout>
