@@ -3,13 +3,16 @@ package com.analogtv.launcher
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ResolveInfo
 import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.BaseAdapter
 import android.widget.GridView
 import android.widget.ImageView
@@ -17,106 +20,109 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 
+/** Phone / box me installed saari apps ki grid. Click = app khulti hai. Back = wapas. */
 class AllAppsActivity : Activity() {
 
-    private class AppItem(val label: String, val icon: Drawable, val pkg: String)
+    private class Entry(val label: String, val icon: Drawable, val intent: Intent)
 
-    private val apps = ArrayList<AppItem>()
+    private lateinit var grid: GridView
+    private var entries: List<Entry> = emptyList()
+
+    private val dm: Float get() = resources.displayMetrics.density
+    private fun dpi(v: Int) = (v * dm).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val prefs = getSharedPreferences("analogtv", Context.MODE_PRIVATE)
         ThemeManager.load(prefs)
-        val d = resources.displayMetrics.density
-        fun dp(v: Int) = (v * d).toInt()
-
-        loadApps()
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             background = ThemeManager.background()
-            setPadding(dp(32), dp(24), dp(32), dp(16))
+            setPadding(dpi(32), dpi(20), dpi(32), dpi(16))
         }
         root.addView(TextView(this).apply {
             text = "All Apps"
-            textSize = 30f
             setTextColor(Color.WHITE)
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            textSize = 24f
+            typeface = Typeface.DEFAULT_BOLD
+            setPadding(0, 0, 0, dpi(12))
         })
 
-        val grid = GridView(this).apply {
+        grid = GridView(this).apply {
             numColumns = 6
-            verticalSpacing = dp(12)
-            horizontalSpacing = dp(12)
-            selector = android.graphics.drawable.ColorDrawable(Color.TRANSPARENT)
-            clipToPadding = false
-            setPadding(0, dp(16), 0, dp(16))
-            adapter = object : BaseAdapter() {
-                override fun getCount() = apps.size
-                override fun getItem(position: Int) = apps[position]
-                override fun getItemId(position: Int) = position.toLong()
-                override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-                    val item = apps[position]
-                    val cell = LinearLayout(this@AllAppsActivity).apply {
-                        orientation = LinearLayout.VERTICAL
-                        gravity = Gravity.CENTER
-                        setPadding(dp(8), dp(14), dp(8), dp(10))
-                        background = ThemeManager.selector(this@AllAppsActivity, 20f)
-                        layoutParams = AbsListViewParams(dp(150))
-                    }
-                    cell.addView(ImageView(this@AllAppsActivity).apply {
-                        setImageDrawable(item.icon)
-                        layoutParams = LinearLayout.LayoutParams(dp(64), dp(64))
-                    })
-                    cell.addView(TextView(this@AllAppsActivity).apply {
-                        text = item.label
-                        textSize = 14f
-                        maxLines = 1
-                        ellipsize = android.text.TextUtils.TruncateAt.END
-                        gravity = Gravity.CENTER
-                        setTextColor(Color.WHITE)
-                        setPadding(0, dp(8), 0, 0)
-                    })
-                    return cell
-                }
-            }
-            setOnItemClickListener { _, _, pos, _ -> launch(apps[pos].pkg) }
+            verticalSpacing = dpi(10)
+            horizontalSpacing = dpi(10)
+            stretchMode = GridView.STRETCH_COLUMN_WIDTH
+            selector = ColorDrawable(Color.TRANSPARENT)
+            overScrollMode = View.OVER_SCROLL_NEVER
+            onItemClickListener = AdapterView.OnItemClickListener { _, _, pos, _ -> launch(pos) }
         }
         root.addView(grid, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         setContentView(root)
-        hideSystemUi()
-    }
 
-    @Suppress("FunctionName")
-    private fun AbsListViewParams(h: Int) =
-        android.widget.AbsListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, h)
-
-    private fun loadApps() {
-        val pm = packageManager
-        val found = LinkedHashMap<String, ResolveInfo>()
-        for (cat in listOf(Intent.CATEGORY_LAUNCHER, Intent.CATEGORY_LEANBACK_LAUNCHER)) {
-            val i = Intent(Intent.ACTION_MAIN).addCategory(cat)
-            for (ri in pm.queryIntentActivities(i, 0)) {
-                val pkg = ri.activityInfo.packageName
-                if (pkg != packageName && !found.containsKey(pkg)) found[pkg] = ri
+        Thread {
+            val pm = packageManager
+            val seen = HashSet<String>()
+            val list = ArrayList<Entry>()
+            for (cat in listOf(Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER)) {
+                val q = Intent(Intent.ACTION_MAIN).addCategory(cat)
+                for (ri in pm.queryIntentActivities(q, 0)) {
+                    val pkg = ri.activityInfo.packageName
+                    if (pkg == packageName || !seen.add(pkg)) continue
+                    val intent = Intent(Intent.ACTION_MAIN)
+                        .addCategory(cat)
+                        .setClassName(pkg, ri.activityInfo.name)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    list.add(Entry(ri.loadLabel(pm).toString(), ri.loadIcon(pm), intent))
+                }
             }
+            list.sortBy { it.label.lowercase() }
+            runOnUiThread {
+                entries = list
+                grid.adapter = AppAdapter()
+                grid.requestFocus()
+            }
+        }.start()
+    }
+
+    private fun launch(pos: Int) {
+        if (pos !in entries.indices) return
+        try {
+            startActivity(entries[pos].intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "App khul nahi saki", Toast.LENGTH_SHORT).show()
         }
-        apps.clear()
-        found.values
-            .map { AppItem(it.loadLabel(pm).toString(), it.loadIcon(pm), it.activityInfo.packageName) }
-            .sortedBy { it.label.lowercase() }
-            .forEach { apps.add(it) }
     }
 
-    private fun launch(pkg: String) {
-        val i = packageManager.getLeanbackLaunchIntentForPackage(pkg)
-            ?: packageManager.getLaunchIntentForPackage(pkg)
-        if (i != null) startActivity(i)
-        else Toast.makeText(this, "App open nahi ho saki", Toast.LENGTH_SHORT).show()
-    }
+    private inner class AppAdapter : BaseAdapter() {
+        override fun getCount() = entries.size
+        override fun getItem(position: Int): Any = entries[position]
+        override fun getItemId(position: Int) = position.toLong()
 
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) hideSystemUi()
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            val e = entries[position]
+            val ctx = this@AllAppsActivity
+            val tile = LinearLayout(ctx).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER
+                setPadding(dpi(6), dpi(10), dpi(6), dpi(8))
+                background = ThemeManager.selector(ctx, 18f)
+            }
+            tile.addView(ImageView(ctx).apply {
+                setImageDrawable(e.icon)
+                layoutParams = LinearLayout.LayoutParams(dpi(56), dpi(56))
+            })
+            tile.addView(TextView(ctx).apply {
+                text = e.label
+                setTextColor(Color.WHITE)
+                textSize = 12f
+                gravity = Gravity.CENTER
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
+                setPadding(0, dpi(6), 0, 0)
+            })
+            return tile
+        }
     }
 }

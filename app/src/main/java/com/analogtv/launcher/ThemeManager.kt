@@ -2,55 +2,67 @@ package com.analogtv.launcher
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
 import androidx.core.graphics.ColorUtils
 
+/** 10 glass theme colours + background / button selector drawables. */
 object ThemeManager {
-    // Blue, Purple, Teal, Green, Gold
     val colors = intArrayOf(
-        0xFF2979FF.toInt(),
-        0xFFB04DFF.toInt(),
-        0xFF1DE9B6.toInt(),
-        0xFF76FF03.toInt(),
-        0xFFFFC107.toInt()
+        0xFF2D9CFF.toInt(), // Blue
+        0xFF22D3EE.toInt(), // Cyan
+        0xFF14B8A6.toInt(), // Teal
+        0xFF34D399.toInt(), // Green
+        0xFFA3E635.toInt(), // Lime
+        0xFFFBBF24.toInt(), // Amber
+        0xFFFB923C.toInt(), // Orange
+        0xFFF87171.toInt(), // Red
+        0xFFF472B6.toInt(), // Pink
+        0xFFA78BFA.toInt()  // Purple
     )
+
     var index = 0
-    val accent: Int get() = colors[index]
 
-    fun load(p: SharedPreferences) {
-        index = p.getInt("theme", 0).coerceIn(0, colors.size - 1)
+    val accent: Int get() = colors[index.coerceIn(0, colors.size - 1)]
+
+    fun load(prefs: SharedPreferences) {
+        index = prefs.getInt("theme", 0).coerceIn(0, colors.size - 1)
     }
 
-    fun save(p: SharedPreferences) {
-        p.edit().putInt("theme", index).apply()
+    fun save(prefs: SharedPreferences) {
+        prefs.edit().putInt("theme", index).apply()
     }
 
-    fun background(): GradientDrawable = GradientDrawable(
-        GradientDrawable.Orientation.TL_BR,
-        intArrayOf(
-            0xFF030818.toInt(),
-            ColorUtils.blendARGB(0xFF0A1238.toInt(), accent, 0.28f),
-            ColorUtils.blendARGB(0xFF0E0526.toInt(), accent, 0.12f)
-        )
-    )
-
-    private fun glass(ctx: Context, radiusDp: Float, strong: Boolean): GradientDrawable {
-        val d = ctx.resources.displayMetrics.density
-        val fills = if (strong) intArrayOf(0x70FFFFFF, 0x30FFFFFF) else intArrayOf(0x40FFFFFF, 0x14FFFFFF)
-        return GradientDrawable(GradientDrawable.Orientation.TL_BR, fills).apply {
-            cornerRadius = radiusDp * d
-            setStroke(
-                ((if (strong) 3 else 2) * d).toInt(),
-                if (strong) accent else ColorUtils.setAlphaComponent(accent, 150)
+    fun background(): Drawable {
+        val a = accent
+        return GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            intArrayOf(
+                ColorUtils.blendARGB(a, Color.BLACK, 0.78f),
+                ColorUtils.blendARGB(a, Color.BLACK, 0.90f),
+                0xFF05070A.toInt()
             )
-        }
+        )
     }
 
-    fun selector(ctx: Context, radiusDp: Float): StateListDrawable = StateListDrawable().apply {
-        addState(intArrayOf(android.R.attr.state_focused), glass(ctx, radiusDp, true))
-        addState(intArrayOf(android.R.attr.state_pressed), glass(ctx, radiusDp, true))
-        addState(intArrayOf(android.R.attr.state_selected), glass(ctx, radiusDp, true))
-        addState(intArrayOf(), glass(ctx, radiusDp, false))
+    /** Glass button: normal / focused / pressed / selected states. */
+    fun selector(ctx: Context, radiusDp: Float): Drawable {
+        val d = ctx.resources.displayMetrics.density
+        val r = radiusDp * d
+        val a = accent
+        fun box(fill: Int, stroke: Int, w: Float): GradientDrawable = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = r
+            setColor(fill)
+            setStroke((w * d).toInt().coerceAtLeast(1), stroke)
+        }
+        return StateListDrawable().apply {
+            addState(intArrayOf(android.R.attr.state_focused), box(ColorUtils.setAlphaComponent(a, 90), Color.WHITE, 3f))
+            addState(intArrayOf(android.R.attr.state_selected), box(ColorUtils.setAlphaComponent(a, 90), Color.WHITE, 3f))
+            addState(intArrayOf(android.R.attr.state_pressed), box(ColorUtils.setAlphaComponent(a, 130), a, 2f))
+            addState(intArrayOf(), box(0x26FFFFFF, 0x40FFFFFF, 1f))
+        }
     }
 }
