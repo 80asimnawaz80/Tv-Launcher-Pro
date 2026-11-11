@@ -46,6 +46,8 @@ class IconView @JvmOverloads constructor(
         }
 
     init {
+        // Layout me android:tag="7" likh kar bhi icon number diya ja sakta hai
+        tag?.toString()?.trim()?.toIntOrNull()?.let { type = it }
         if (attrs != null) {
             for (i in 0 until attrs.attributeCount) {
                 if (attrs.getAttributeName(i) == "type") type = attrs.getAttributeIntValue(i, 0)
