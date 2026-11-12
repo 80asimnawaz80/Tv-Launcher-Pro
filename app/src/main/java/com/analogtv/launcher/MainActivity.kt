@@ -18,6 +18,9 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 import android.provider.Settings
 import android.text.InputType
 import android.text.SpannableString
@@ -50,7 +53,8 @@ class MainActivity : Activity() {
         CONNECTING("Connecting", 1, 0xFFFFC107.toInt()),
         BUFFERING("Buffering", 2, 0xFFFFC107.toInt()),
         GOOD("Good", 3, 0xFF3DDC4A.toInt()),
-        OFFLINE("No Signal", 0, 0xFFFF4D4D.toInt())
+        OFFLINE("No Signal", 0, 0xFFFF4D4D.toInt()),
+        PAUSED("Paused", 0, 0xFF9AA0B5.toInt())
     }
 
     private lateinit var prefs: SharedPreferences
@@ -82,10 +86,28 @@ class MainActivity : Activity() {
     private lateinit var pipControls: View
     private lateinit var pipToast: TextView
     private lateinit var ctlMute: IconView
+    private lateinit var ctlPlay: IconView
+    private var userPaused = false
+    private val reqWallpaper = 7711
     private lateinit var liveBadge: TextView
     private lateinit var qualityText: TextView
     private lateinit var sizeLabel: TextView
-    private lateinit var weatherIcon: TextView
+    private lateinit var weatherIcon: WeatherIconView
+    private lateinit var calPage: CalendarPageView
+    private lateinit var calHijri: TextView
+    private lateinit var calGreg: TextView
+    private lateinit var calEvent: TextView
+    private lateinit var calNext: TextView
+    private val calendarRunnable = Runnable { updateCalendar() }
+
+    private val widgetIds = linkedMapOf(
+        "weather" to R.id.weatherCard,
+        "clock" to R.id.clockCard,
+        "calendar" to R.id.calendarCard
+    )
+    private val widgetTitles = mapOf("weather" to "Weather", "clock" to "Clock", "calendar" to "Calendar (Islamic)")
+    private val sizeWeights = floatArrayOf(0.6f, 1f, 1.5f)
+    private val sizeNames = arrayOf("Small", "Normal", "Large")
     private lateinit var weatherTemp: TextView
     private lateinit var weatherDesc: TextView
     private lateinit var weatherCity: TextView
@@ -97,7 +119,12 @@ class MainActivity : Activity() {
     private val dm: Float get() = resources.displayMetrics.density
     private fun dpi(v: Int) = (v * dm).toInt()
 
-    private val retryRunnable = Runnable { player?.prepare() }
+    private val retryRunnable = Runnable {
+        player?.let {
+            it.seekToDefaultPosition()
+            it.prepare()
+        }
+    }
     private val weatherRunnable = Runnable { refreshWeather() }
     private val hideControls = Runnable { pipControls.visibility = View.GONE }
     private val hidePipToast = Runnable { pipToast.visibility = View.GONE }
@@ -138,6 +165,7 @@ class MainActivity : Activity() {
     override fun onStop() {
         visible = false
         handler.removeCallbacks(weatherRunnable)
+        handler.removeCallbacks(calendarRunnable)
         handler.removeCallbacks(hideControls)
         stopPip()
         super.onStop()
@@ -184,10 +212,19 @@ class MainActivity : Activity() {
         pipControls = findViewById(R.id.pipControls)
         pipToast = findViewById(R.id.pipToast)
         ctlMute = findViewById(R.id.ctlMute)
+        ctlPlay = findViewById(R.id.ctlPlay)
         liveBadge = findViewById(R.id.liveBadge)
         qualityText = findViewById(R.id.qualityText)
         sizeLabel = findViewById(R.id.sizeLabel)
         weatherIcon = findViewById(R.id.weatherIcon)
+        calPage = findViewById(R.id.calPage)
+        calHijri = findViewById(R.id.calHijri)
+        calGreg = findViewById(R.id.calGreg)
+        calEvent = findViewById(R.id.calEvent)
+        calNext = findViewById(R.id.calNext)
+        calHijri.isSelected = true
+        calEvent.isSelected = true
+        calNext.isSelected = true
         weatherTemp = findViewById(R.id.weatherTemp)
         weatherDesc = findViewById(R.id.weatherDesc)
         weatherCity = findViewById(R.id.weatherCity)
@@ -203,8 +240,8 @@ class MainActivity : Activity() {
             View(this).apply {
                 isClickable = true
                 isFocusable = true
-                layoutParams = LinearLayout.LayoutParams(dpi(36), dpi(36)).apply {
-                    setMargins(dpi(5), 0, dpi(5), 0)
+                layoutParams = LinearLayout.LayoutParams(dpi(26), dpi(26)).apply {
+                    setMargins(dpi(3), 0, dpi(3), 0)
                 }
                 setOnClickListener {
                     ThemeManager.index = i
@@ -232,7 +269,7 @@ class MainActivity : Activity() {
                 outline.setRoundRect(0, 0, view.width, view.height, 16f * dm)
             }
         }
-        pipCard.elevation = 12f * dm
+        pipCard.elevation = 26f * dm
         pipCard.setBackgroundColor(Color.BLACK)
 
         pipControls.background = GradientDrawable().apply {
@@ -292,7 +329,7 @@ class MainActivity : Activity() {
             false
         }
         pipCard.setOnHoverListener(hover)
-        for (id in intArrayOf(R.id.ctlPrev, R.id.ctlVolDown, R.id.ctlMute, R.id.ctlVolUp, R.id.ctlNext)) {
+        for (id in intArrayOf(R.id.ctlPrev, R.id.ctlVolDown, R.id.ctlPlay, R.id.ctlMute, R.id.ctlVolUp, R.id.ctlNext)) {
             findViewById<View>(id).setOnHoverListener(hover)
         }
         findViewById<View>(R.id.ctlPrev).setOnClickListener { showControls(); changeChannel(-1) }
@@ -300,9 +337,15 @@ class MainActivity : Activity() {
         findViewById<View>(R.id.ctlVolDown).setOnClickListener { showControls(); changeVolume(-0.1f) }
         findViewById<View>(R.id.ctlVolUp).setOnClickListener { showControls(); changeVolume(+0.1f) }
         findViewById<View>(R.id.ctlMute).setOnClickListener { showControls(); toggleMute() }
+        findViewById<View>(R.id.ctlPlay).setOnClickListener { showControls(); togglePlay() }
+        findViewById<View>(R.id.btnWallpaper).setOnClickListener { showBackgroundDialog() }
 
         findViewById<View>(R.id.weatherCard).setOnClickListener { showCityDialog() }
         findViewById<View>(R.id.clockCard).setOnClickListener { showClockStyleDialog() }
+        findViewById<View>(R.id.calendarCard).setOnClickListener { showCalendarDialog() }
+        findViewById<View>(R.id.weatherCard).setOnLongClickListener { showWidgetDialog("weather"); true }
+        findViewById<View>(R.id.clockCard).setOnLongClickListener { showWidgetDialog("clock"); true }
+        findViewById<View>(R.id.calendarCard).setOnLongClickListener { showWidgetDialog("calendar"); true }
         findViewById<View>(R.id.btnTopSettings).setOnClickListener { showSettingsDialog() }
         findViewById<View>(R.id.btnInfo).setOnClickListener { showInfoDialog() }
         findViewById<View>(R.id.wifiIcon).setOnClickListener { openWifiSettings() }
@@ -329,7 +372,7 @@ class MainActivity : Activity() {
 
     private fun applyTheme() {
         val a = ThemeManager.accent
-        root.background = ThemeManager.background()
+        root.background = ThemeManager.background(this)
         findViewById<IconView>(R.id.logo).tint = a
 
         val title = SpannableString("Zavi TV")
@@ -339,6 +382,7 @@ class MainActivity : Activity() {
 
         findViewById<View>(R.id.weatherCard).background = ThemeManager.selector(this, 28f)
         findViewById<View>(R.id.clockCard).background = ThemeManager.selector(this, 28f)
+        findViewById<View>(R.id.calendarCard).background = ThemeManager.selector(this, 28f)
         findViewById<View>(R.id.optionsBar).background = ThemeManager.selector(this, 31f)
 
         // Bottom tiles (built-in + custom)
@@ -349,16 +393,14 @@ class MainActivity : Activity() {
         }
         for (id in intArrayOf(
             R.id.btnTopSettings, R.id.btnInfo, R.id.btnFullscreen, R.id.btnMinus, R.id.btnPlus,
-            R.id.wifiIcon, R.id.ctlPrev, R.id.ctlVolDown, R.id.ctlMute, R.id.ctlVolUp, R.id.ctlNext
+            R.id.wifiIcon, R.id.btnWallpaper, R.id.ctlPrev, R.id.ctlVolDown, R.id.ctlPlay,
+            R.id.ctlMute, R.id.ctlVolUp, R.id.ctlNext
         )) {
             findViewById<View>(id).background = ThemeManager.selector(this, 40f)
         }
 
         // PIP frame (foreground border)
-        pipCard.foreground = StateListDrawable().apply {
-            addState(intArrayOf(android.R.attr.state_focused), pipBorder(a, 4f))
-            addState(intArrayOf(), pipBorder(ColorUtils.setAlphaComponent(a, 200), 2.5f))
-        }
+        pipCard.foreground = ThemeManager.bezel(this)
 
         // Theme dots
         dots.forEachIndexed { i, v ->
@@ -374,11 +416,14 @@ class MainActivity : Activity() {
         // focus pop animation
         for (id in intArrayOf(
             R.id.btnTopSettings, R.id.btnInfo, R.id.btnFullscreen, R.id.btnMinus, R.id.btnPlus,
-            R.id.weatherCard, R.id.clockCard, R.id.wifiIcon
+            R.id.weatherCard, R.id.clockCard, R.id.calendarCard, R.id.wifiIcon, R.id.btnWallpaper
         )) pop(findViewById(id))
 
         applyClockStyle()
         updateMuteIcon()
+        updatePlayIcon()
+        applyWidgets()
+        updateCalendar()
         setStatus(currentStatus)
     }
 
@@ -415,7 +460,7 @@ class MainActivity : Activity() {
             style = prefs.getInt("analogStyle", 0).coerceIn(0, analogStyleNames.size - 1)
         }
         val dc = findViewById<TextClock>(R.id.digitalClock)
-        dc.setShadowLayer(0f, 0f, 0f, 0)
+        dc.setShadowLayer(8f, 3f, 4f, 0xAA000000.toInt())
         when (prefs.getInt("digitalStyle", 0).coerceIn(0, digitalStyleNames.size - 1)) {
             0 -> digital(dc, "hh:mm:ss a", Typeface.DEFAULT_BOLD, Color.WHITE, 28f)
             1 -> digital(dc, "hh:mm:ss", Typeface.MONOSPACE, Color.WHITE, 30f)
@@ -557,14 +602,16 @@ class MainActivity : Activity() {
 
     private fun startPip() {
         if (player != null) return
-        val p = ExoPlayer.Builder(this).build()
+        userPaused = false
+        updatePlayIcon()
+        val p = PlayerTuning.newPlayer(this, true, slowMode())
         p.repeatMode = Player.REPEAT_MODE_ONE
         p.volume = if (isSound()) volume() else 0f
         p.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 when (playbackState) {
-                    Player.STATE_READY -> setStatus(Status.GOOD)
-                    Player.STATE_BUFFERING -> setStatus(Status.BUFFERING)
+                    Player.STATE_READY -> if (!userPaused) setStatus(Status.GOOD)
+                    Player.STATE_BUFFERING -> if (!userPaused) setStatus(Status.BUFFERING)
                     else -> {}
                 }
             }
@@ -572,11 +619,11 @@ class MainActivity : Activity() {
             override fun onPlayerError(error: PlaybackException) {
                 setStatus(Status.OFFLINE)
                 handler.removeCallbacks(retryRunnable)
-                handler.postDelayed(retryRunnable, 10_000)
+                handler.postDelayed(retryRunnable, 6_000)
             }
         })
         pipPlayerView.player = p
-        p.setMediaItem(MediaItem.fromUri(Config.streamUrl(prefs)))
+        p.setMediaItem(PlayerTuning.item(Config.streamUrl(prefs), slowMode()))
         p.prepare()
         p.playWhenReady = true
         player = p
@@ -604,7 +651,9 @@ class MainActivity : Activity() {
     private fun playCurrent() {
         val p = player ?: return
         handler.removeCallbacks(retryRunnable)
-        p.setMediaItem(MediaItem.fromUri(Config.streamUrl(prefs)))
+        userPaused = false
+        updatePlayIcon()
+        p.setMediaItem(PlayerTuning.item(Config.streamUrl(prefs), slowMode()))
         p.prepare()
         p.playWhenReady = true
         setStatus(Status.CONNECTING)
@@ -749,6 +798,7 @@ class MainActivity : Activity() {
         tilesRow.addView(makeIptvTile())
         for (pkg in customApps()) makeCustomTile(pkg)?.let { tilesRow.addView(it) }
         tilesRow.addView(makeAddTile())
+        if (customApps().isNotEmpty()) tilesRow.addView(makeRemoveTile())
         layoutTiles()
         if (::dots.isInitialized) applyTheme()
     }
@@ -897,21 +947,294 @@ class MainActivity : Activity() {
                     .setItems(apps.map { it.first }.toTypedArray()) { _, which ->
                         saveCustomApps(customApps() + apps[which].second)
                         rebuildCustomTiles()
-                        toast("${apps[which].first} add ho gayi (hatane ke liye long-press)")
+                        toast("${apps[which].first} add ho gayi (hatane ke liye Remove App)")
                     }
                     .show()
             }
         }.start()
     }
 
+    // ================================================================ play / pause, slow mode
+
+    private fun slowMode(): Boolean = prefs.getBoolean("slow", true)
+
+    private fun togglePlay() {
+        val p = player ?: return
+        if (userPaused) {
+            userPaused = false
+            p.seekToDefaultPosition()
+            p.prepare()
+            p.playWhenReady = true
+            setStatus(Status.CONNECTING)
+            pipMessage("Play")
+        } else {
+            userPaused = true
+            p.playWhenReady = false
+            setStatus(Status.PAUSED)
+            pipMessage("Paused")
+        }
+        updatePlayIcon()
+    }
+
+    private fun updatePlayIcon() {
+        ctlPlay.type = if (userPaused) 19 else 20
+    }
+
+    // ================================================================ remove app tile
+
+    private fun makeRemoveTile(): View {
+        val tile = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            isClickable = true
+            isFocusable = true
+            tag = "add"
+            layoutParams = tileParams()
+        }
+        tile.addView(IconView(this).apply {
+            type = 21
+            layoutParams = LinearLayout.LayoutParams(dpi(48), dpi(48))
+        })
+        tile.addView(tileLabel("Remove App"))
+        tile.setOnClickListener { showRemoveAppDialog() }
+        return tile
+    }
+
+    private fun showRemoveAppDialog() {
+        val pkgs = customApps()
+        if (pkgs.isEmpty()) {
+            toast("Hatane ke liye koi app nahi")
+            return
+        }
+        val labels = pkgs.map {
+            try {
+                packageManager.getApplicationLabel(packageManager.getApplicationInfo(it, 0)).toString()
+            } catch (e: Exception) {
+                it
+            }
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Kaun si app hatani hai?")
+            .setItems(labels.toTypedArray()) { _, which ->
+                saveCustomApps(customApps().filter { it != pkgs[which] })
+                rebuildCustomTiles()
+                toast("${labels[which]} hata di gayi")
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    // ================================================================ background / wallpaper
+
+    private fun showBackgroundDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Desktop background")
+            .setItems(BackgroundManager.modeNames) { _, which ->
+                when (which) {
+                    BackgroundManager.MODE_COLOR -> showBgColorDialog()
+                    BackgroundManager.MODE_PHOTO -> pickPhoto()
+                    else -> {
+                        BackgroundManager.setMode(prefs, which)
+                        applyTheme()
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun showBgColorDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Background colour")
+            .setItems(BackgroundManager.colorNames) { _, i ->
+                BackgroundManager.setColor(prefs, BackgroundManager.colorValues[i])
+                applyTheme()
+            }
+            .show()
+    }
+
+    @Suppress("DEPRECATION")
+    private fun pickPhoto() {
+        try {
+            val i = Intent(Intent.ACTION_GET_CONTENT).apply {
+                type = "image/*"
+                addCategory(Intent.CATEGORY_OPENABLE)
+            }
+            startActivityForResult(Intent.createChooser(i, "Photo chunein"), reqWallpaper)
+        } catch (e: Exception) {
+            toast("Gallery / file manager nahi mila")
+        }
+    }
+
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == reqWallpaper && resultCode == RESULT_OK) {
+            val uri = data?.data
+            if (uri == null) {
+                toast("Photo nahi mili")
+                return
+            }
+            Thread {
+                val ok = BackgroundManager.savePhoto(this, uri)
+                runOnUiThread {
+                    if (ok) {
+                        BackgroundManager.setMode(prefs, BackgroundManager.MODE_PHOTO)
+                        applyTheme()
+                        toast("Wallpaper lag gaya")
+                    } else {
+                        toast("Photo load nahi ho saki")
+                    }
+                }
+            }.start()
+        }
+    }
+
+    // ================================================================ Islamic calendar widget
+
+    private fun hijriAdj(): Int = prefs.getInt("hijri_adj", 0)
+
+    private fun daysText(n: Int): String = when (n) {
+        0 -> "aaj"
+        1 -> "kal"
+        else -> "$n din baad"
+    }
+
+    private fun updateCalendar() {
+        if (!::calPage.isInitialized) return
+        val adj = hijriAdj()
+        val now = Calendar.getInstance()
+        val en = Locale.ENGLISH
+        val td = IslamicCalendar.today(adj)
+        calPage.set(
+            now.get(Calendar.DAY_OF_MONTH),
+            SimpleDateFormat("MMM", en).format(now.time).uppercase(),
+            SimpleDateFormat("EEE", en).format(now.time).uppercase(),
+            td.hijri.day,
+            ThemeManager.accent
+        )
+        calHijri.text = td.hijri.text()
+        calGreg.text = SimpleDateFormat("EEEE, d MMM yyyy", en).format(now.time)
+
+        val majors = td.events.filter { it.major }
+        val shown = if (majors.isNotEmpty()) majors else td.events
+        if (shown.isEmpty()) {
+            calEvent.text = "Aaj koi khas din nahi"
+            calEvent.setTextColor(0xCCFFFFFF.toInt())
+        } else {
+            calEvent.text = (if (shown[0].islamic) "\uD83C\uDF19 " else "\u2605 ") + shown.joinToString(" \u2022 ") { it.name }
+            calEvent.setTextColor(
+                if (majors.isNotEmpty()) ColorUtils.blendARGB(ThemeManager.accent, Color.WHITE, 0.45f) else Color.WHITE
+            )
+        }
+        val nx = IslamicCalendar.nextMajor(adj)
+        calNext.text = if (nx != null) {
+            "Agla: " + nx.events.joinToString(" \u2022 ") { it.name } + " - " + daysText(nx.daysAhead)
+        } else {
+            ""
+        }
+        handler.removeCallbacks(calendarRunnable)
+        if (visible) handler.postDelayed(calendarRunnable, 60_000L)
+    }
+
+    private fun showCalendarDialog() {
+        val adj = hijriAdj()
+        val fmt = SimpleDateFormat("EEE, d MMM", Locale.ENGLISH)
+        val list = IslamicCalendar.upcoming(adj, 14)
+        val items = list.map { u ->
+            fmt.format(u.cal.time) + "  (" + u.hijri.day + " " + IslamicCalendar.monthNames[u.hijri.month - 1] + ")\n" +
+                u.events.joinToString(" \u2022 ") { it.name } + "  -  " + daysText(u.daysAhead)
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Islamic calendar - khas din")
+            .setItems(items.toTypedArray()) { _, _ -> }
+            .setPositiveButton("Hijri date theek karein") { _, _ -> showHijriAdjustDialog() }
+            .setNegativeButton("Band", null)
+            .show()
+    }
+
+    private fun showHijriAdjustDialog() {
+        val opts = arrayOf("-2 din", "-1 din (chand der se dikhe)", "0 (default)", "+1 din", "+2 din")
+        AlertDialog.Builder(this)
+            .setTitle("Hijri date adjust (chand ke hisaab se)")
+            .setSingleChoiceItems(opts, hijriAdj() + 2) { dlg, which ->
+                prefs.edit().putInt("hijri_adj", which - 2).apply()
+                updateCalendar()
+                dlg.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    // ================================================================ widgets (show / hide / resize)
+
+    private fun widgetVisible(key: String): Boolean = prefs.getBoolean("w_${key}_on", true)
+
+    private fun widgetSize(key: String): Int = prefs.getInt("w_${key}_size", 1).coerceIn(0, 2)
+
+    private fun applyWidgets() {
+        var any = false
+        for ((key, id) in widgetIds) {
+            val v = findViewById<View>(id)
+            val on = widgetVisible(key)
+            v.visibility = if (on) View.VISIBLE else View.GONE
+            val lp = v.layoutParams as LinearLayout.LayoutParams
+            lp.weight = sizeWeights[widgetSize(key)]
+            lp.topMargin = if (on && any) dpi(8) else 0
+            v.layoutParams = lp
+            if (on) any = true
+        }
+        findViewById<View>(R.id.rightColumn).visibility = if (any) View.VISIBLE else View.GONE
+    }
+
+    private fun showWidgetDialog(key: String) {
+        val items = arrayOf("Hide / Delete", "Small size", "Normal size", "Large size")
+        val checked = if (!widgetVisible(key)) 0 else widgetSize(key) + 1
+        AlertDialog.Builder(this)
+            .setTitle(widgetTitles[key])
+            .setSingleChoiceItems(items, checked) { dlg, which ->
+                if (which == 0) {
+                    prefs.edit().putBoolean("w_${key}_on", false).apply()
+                } else {
+                    prefs.edit().putBoolean("w_${key}_on", true).putInt("w_${key}_size", which - 1).apply()
+                }
+                applyWidgets()
+                dlg.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showWidgetsDialog() {
+        val keys = widgetIds.keys.toList()
+        val items = keys.map { k ->
+            widgetTitles[k] + "  -  " + (if (widgetVisible(k)) sizeNames[widgetSize(k)] else "Hidden (add karein)")
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Widgets: add / delete / resize")
+            .setItems(items.toTypedArray()) { _, i -> showWidgetDialog(keys[i]) }
+            .setNeutralButton("Sab wapas (reset)") { _, _ ->
+                for (k in keys) {
+                    prefs.edit().putBoolean("w_${k}_on", true).putInt("w_${k}_size", 1).apply()
+                }
+                applyWidgets()
+            }
+            .setNegativeButton("Band", null)
+            .show()
+    }
+
     // ================================================================ dialogs
 
     private fun showSettingsDialog() {
         val sound = isSound()
+        val slow = slowMode()
         val items = arrayOf(
             "Channels / Playlist (M3U)",
             "Weather location",
             "Clock style (analog / digital)",
+            "Widgets: add / delete / resize",
+            "Islamic calendar / Hijri date adjust",
+            "Background (picture / colour)",
+            if (slow) "Slow internet mode: ON  (band karein)" else "Slow internet mode: OFF  (on karein)",
             if (sound) "PIP awaaz: ON  (mute karein)" else "PIP awaaz: OFF  (on karein)",
             "Is app ko default launcher banayein"
         )
@@ -922,8 +1245,16 @@ class MainActivity : Activity() {
                     0 -> showChannelMenu()
                     1 -> showCityDialog()
                     2 -> showClockStyleDialog()
-                    3 -> toggleMute()
-                    4 -> openHomeSettings()
+                    3 -> showWidgetsDialog()
+                    4 -> showCalendarDialog()
+                    5 -> showBackgroundDialog()
+                    6 -> {
+                        prefs.edit().putBoolean("slow", !slow).apply()
+                        toast(if (!slow) "Slow internet mode ON" else "Slow internet mode OFF")
+                        reloadStream()
+                    }
+                    7 -> toggleMute()
+                    8 -> openHomeSettings()
                 }
             }
             .show()

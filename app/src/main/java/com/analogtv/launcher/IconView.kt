@@ -46,6 +46,10 @@ class IconView @JvmOverloads constructor(
         }
 
     init {
+        setLayerType(LAYER_TYPE_SOFTWARE, null)
+        val sh = Color.argb(150, 0, 0, 0)
+        stroke.setShadowLayer(3f, 1.5f, 2.5f, sh)
+        fill.setShadowLayer(3f, 1.5f, 2.5f, sh)
         // Layout me android:tag="7" likh kar bhi icon number diya ja sakta hai
         tag?.toString()?.trim()?.toIntOrNull()?.let { type = it }
         if (attrs != null) {
@@ -56,11 +60,13 @@ class IconView @JvmOverloads constructor(
     }
 
     override fun onDraw(c: Canvas) {
-        val side = minOf(width, height).toFloat()
+        val aw = (width - paddingLeft - paddingRight).toFloat()
+        val ah = (height - paddingTop - paddingBottom).toFloat()
+        val side = minOf(aw, ah)
         if (side <= 0f) return
         val s = side * 0.72f / 24f
         c.save()
-        c.translate(width / 2f - 12f * s, height / 2f - 12f * s)
+        c.translate(paddingLeft + aw / 2f - 12f * s, paddingTop + ah / 2f - 12f * s)
         c.scale(s, s)
         stroke.color = tint
         fill.color = tint
@@ -87,9 +93,39 @@ class IconView @JvmOverloads constructor(
                 c.drawCircle(12f, 12f, 9.5f, stroke)
                 plus(c, 4.5f)
             }
+            19 -> playTri(c)
+            20 -> pauseBars(c)
+            21 -> {
+                c.drawCircle(12f, 12f, 9.5f, stroke)
+                c.drawLine(7.5f, 12f, 16.5f, 12f, stroke)
+            }
+            22 -> picture(c)
             else -> c.drawCircle(12f, 12f, 8f, stroke)
         }
         c.restore()
+    }
+
+    private fun playTri(c: Canvas) {
+        path.reset()
+        path.moveTo(7f, 4.5f); path.lineTo(7f, 19.5f); path.lineTo(19.5f, 12f)
+        path.close()
+        c.drawPath(path, fill)
+    }
+
+    private fun pauseBars(c: Canvas) {
+        rect.set(6f, 5f, 10.5f, 19f)
+        c.drawRoundRect(rect, 1.2f, 1.2f, fill)
+        rect.set(13.5f, 5f, 18f, 19f)
+        c.drawRoundRect(rect, 1.2f, 1.2f, fill)
+    }
+
+    private fun picture(c: Canvas) {
+        rect.set(2.5f, 4.5f, 21.5f, 19.5f)
+        c.drawRoundRect(rect, 2.5f, 2.5f, stroke)
+        c.drawCircle(8f, 9.5f, 1.8f, fill)
+        path.reset()
+        path.moveTo(3.5f, 18.5f); path.lineTo(10f, 12f); path.lineTo(14f, 16f); path.lineTo(16.5f, 13.5f); path.lineTo(20.5f, 18.5f)
+        c.drawPath(path, stroke)
     }
 
     private fun plus(c: Canvas, h: Float) {

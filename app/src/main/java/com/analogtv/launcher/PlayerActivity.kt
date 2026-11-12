@@ -78,7 +78,7 @@ class PlayerActivity : Activity() {
 
     override fun onStart() {
         super.onStart()
-        val p = ExoPlayer.Builder(this).build()
+        val p = PlayerTuning.newPlayer(this, false, prefs.getBoolean("slow", true))
         p.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
                 showLabel("No Signal - dobara koshish ho rahi hai...")

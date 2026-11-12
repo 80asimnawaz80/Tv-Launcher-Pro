@@ -4,6 +4,8 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     android:orientation="vertical"
     android:paddingStart="24dp"
     android:paddingTop="14dp"
@@ -13,15 +15,16 @@
     <!-- Top bar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="52dp"
+        android:layout_height="54dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <com.analogtv.launcher.IconView
             android:id="@+id/logo"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
             android:tag="15"
+            android:paddingBottom="0dp"
             android:clickable="true"
             android:focusable="true" />
 
@@ -32,34 +35,58 @@
             android:layout_marginStart="10dp"
             android:text="Zavi TV"
             android:textColor="#FFFFFF"
-            android:textSize="28sp"
-            android:textStyle="bold" />
+            android:textSize="30sp"
+            android:textStyle="bold"
+    android:shadowColor="#AA000000"
+    android:shadowDx="1"
+    android:shadowDy="2"
+    android:shadowRadius="3" />
 
         <View
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_weight="1" />
 
+        <LinearLayout
+            android:id="@+id/dotsRow"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="12dp"
+            android:gravity="center"
+            android:orientation="horizontal" />
+
         <com.analogtv.launcher.IconView
-            android:id="@+id/wifiIcon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:tag="6"
+            android:id="@+id/btnWallpaper"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:tag="22"
+            android:paddingBottom="4dp"
             android:clickable="true"
             android:focusable="true" />
         <com.analogtv.launcher.IconView
+            android:id="@+id/wifiIcon"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:tag="6"
+            android:paddingBottom="4dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginStart="8dp" />
+        <com.analogtv.launcher.IconView
             android:id="@+id/btnInfo"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
             android:tag="2"
+            android:paddingBottom="4dp"
             android:clickable="true"
             android:focusable="true"
             android:layout_marginStart="8dp" />
         <com.analogtv.launcher.IconView
             android:id="@+id/btnTopSettings"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
             android:tag="1"
+            android:paddingBottom="4dp"
             android:clickable="true"
             android:focusable="true"
             android:layout_marginStart="8dp" />
@@ -71,6 +98,8 @@
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:layout_weight="1"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:orientation="horizontal">
 
         <!-- Left: PIP + options bar -->
@@ -78,13 +107,17 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="3"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:orientation="vertical">
 
             <FrameLayout
                 android:id="@+id/pipArea"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1">
+                android:layout_weight="1"
+                android:clipChildren="false"
+                android:clipToPadding="false">
 
                 <FrameLayout
                     android:id="@+id/pipCard"
@@ -106,7 +139,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="top|start"
-                        android:layout_margin="10dp"
+                        android:layout_margin="12dp"
                         android:paddingStart="8dp"
                         android:paddingTop="3dp"
                         android:paddingEnd="8dp"
@@ -135,57 +168,72 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="bottom|center_horizontal"
-                        android:layout_marginBottom="10dp"
+                        android:layout_marginBottom="12dp"
                         android:gravity="center"
                         android:orientation="horizontal"
                         android:padding="6dp"
                         android:visibility="gone">
 
-            <com.analogtv.launcher.IconView
-                android:id="@+id/ctlPrev"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:tag="7"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp" />
-            <com.analogtv.launcher.IconView
-                android:id="@+id/ctlVolDown"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:tag="9"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp" />
-            <com.analogtv.launcher.IconView
-                android:id="@+id/ctlMute"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:tag="17"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp" />
-            <com.analogtv.launcher.IconView
-                android:id="@+id/ctlVolUp"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:tag="10"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp" />
-            <com.analogtv.launcher.IconView
-                android:id="@+id/ctlNext"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:tag="8"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp" />
+                        <com.analogtv.launcher.IconView
+                            android:id="@+id/ctlPrev"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:tag="7"
+                            android:paddingBottom="4dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:layout_marginStart="3dp"
+                            android:layout_marginEnd="3dp" />
+                        <com.analogtv.launcher.IconView
+                            android:id="@+id/ctlVolDown"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:tag="9"
+                            android:paddingBottom="4dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:layout_marginStart="3dp"
+                            android:layout_marginEnd="3dp" />
+                        <com.analogtv.launcher.IconView
+                            android:id="@+id/ctlPlay"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:tag="20"
+                            android:paddingBottom="4dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:layout_marginStart="3dp"
+                            android:layout_marginEnd="3dp" />
+                        <com.analogtv.launcher.IconView
+                            android:id="@+id/ctlMute"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:tag="17"
+                            android:paddingBottom="4dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:layout_marginStart="3dp"
+                            android:layout_marginEnd="3dp" />
+                        <com.analogtv.launcher.IconView
+                            android:id="@+id/ctlVolUp"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:tag="10"
+                            android:paddingBottom="4dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:layout_marginStart="3dp"
+                            android:layout_marginEnd="3dp" />
+                        <com.analogtv.launcher.IconView
+                            android:id="@+id/ctlNext"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:tag="8"
+                            android:paddingBottom="4dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:layout_marginStart="3dp"
+                            android:layout_marginEnd="3dp" />
                     </LinearLayout>
                 </FrameLayout>
             </FrameLayout>
@@ -194,12 +242,13 @@
             <LinearLayout
                 android:id="@+id/optionsBar"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
+                android:layout_height="58dp"
                 android:layout_marginTop="8dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingStart="16dp"
-                android:paddingEnd="12dp">
+                android:paddingStart="18dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="4dp">
 
                 <TextView
                     android:id="@+id/qualityText"
@@ -207,7 +256,11 @@
                     android:layout_height="wrap_content"
                     android:text="Quality : Connecting"
                     android:textColor="#FFFFFF"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+    android:shadowColor="#AA000000"
+    android:shadowDx="1"
+    android:shadowDy="2"
+    android:shadowRadius="3" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -232,13 +285,18 @@
                     android:text="Zavi TV"
                     android:textColor="#FFFFFF"
                     android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+    android:shadowColor="#AA000000"
+    android:shadowDx="1"
+    android:shadowDy="2"
+    android:shadowRadius="3" />
 
                 <com.analogtv.launcher.IconView
                     android:id="@+id/btnMinus"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
                     android:tag="4"
+                    android:paddingBottom="0dp"
                     android:clickable="true"
                     android:focusable="true" />
 
@@ -249,55 +307,66 @@
                     android:gravity="center"
                     android:text="Small"
                     android:textColor="#FFFFFF"
-                    android:textSize="15sp" />
+                    android:textSize="15sp"
+    android:shadowColor="#AA000000"
+    android:shadowDx="1"
+    android:shadowDy="2"
+    android:shadowRadius="3" />
 
                 <com.analogtv.launcher.IconView
                     android:id="@+id/btnPlus"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
                     android:tag="5"
+                    android:paddingBottom="0dp"
                     android:clickable="true"
                     android:focusable="true" />
                 <com.analogtv.launcher.IconView
                     android:id="@+id/btnFullscreen"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
                     android:tag="3"
+                    android:paddingBottom="0dp"
                     android:clickable="true"
                     android:focusable="true"
                     android:layout_marginStart="12dp" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Right: weather, clock, theme dots -->
+        <!-- Right: weather + clock (barabar size), theme dots -->
         <LinearLayout
+            android:id="@+id/rightColumn"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_marginStart="14dp"
-            android:layout_weight="1.3"
+            android:layout_marginStart="16dp"
+            android:layout_weight="1.5"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:orientation="vertical">
 
             <LinearLayout
                 android:id="@+id/weatherCard"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:padding="14dp">
+                android:paddingStart="16dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="16dp">
 
-                <TextView
+                <com.analogtv.launcher.WeatherIconView
                     android:id="@+id/weatherIcon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="⛅"
-                    android:textSize="40sp" />
+                    android:layout_width="76dp"
+                    android:layout_height="76dp" />
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
+                    android:layout_marginStart="14dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -307,16 +376,24 @@
                         android:layout_height="wrap_content"
                         android:text="--°C"
                         android:textColor="#FFFFFF"
-                        android:textSize="30sp"
-                        android:textStyle="bold" />
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+    android:shadowColor="#AA000000"
+    android:shadowDx="1"
+    android:shadowDy="2"
+    android:shadowRadius="3" />
 
                     <TextView
                         android:id="@+id/weatherDesc"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Loading..."
-                        android:textColor="#DDFFFFFF"
-                        android:textSize="14sp" />
+                        android:textColor="#EEFFFFFF"
+                        android:textSize="15sp"
+    android:shadowColor="#AA000000"
+    android:shadowDx="1"
+    android:shadowDy="2"
+    android:shadowRadius="3" />
 
                     <TextView
                         android:id="@+id/weatherCity"
@@ -325,8 +402,12 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:text="📍 --"
-                        android:textColor="#BBFFFFFF"
-                        android:textSize="13sp" />
+                        android:textColor="#CCFFFFFF"
+                        android:textSize="13sp"
+    android:shadowColor="#AA000000"
+    android:shadowDx="1"
+    android:shadowDy="2"
+    android:shadowRadius="3" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -334,18 +415,21 @@
                 android:id="@+id/clockCard"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="8dp"
                 android:layout_weight="1"
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center"
-                android:orientation="vertical"
-                android:padding="10dp">
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="16dp">
 
                 <com.analogtv.launcher.AnalogClockView
                     android:id="@+id/analogClock"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="1" />
 
                 <TextClock
@@ -354,19 +438,103 @@
                     android:layout_height="wrap_content"
                     android:format12Hour="hh:mm:ss a"
                     android:format24Hour="hh:mm:ss a"
-                    android:paddingTop="4dp"
+                    android:gravity="center"
+                    android:paddingStart="6dp"
                     android:textColor="#FFFFFF"
-                    android:textSize="28sp"
-                    android:textStyle="bold" />
+                    android:textSize="21sp"
+                    android:textStyle="bold"
+    android:shadowColor="#AA000000"
+    android:shadowDx="1"
+    android:shadowDy="2"
+    android:shadowRadius="3" />
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/dotsRow"
+                android:id="@+id/calendarCard"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="6dp"
-                android:gravity="center"
-                android:orientation="horizontal" />
+                android:layout_height="0dp"
+                android:layout_marginTop="8dp"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="16dp">
+
+                <com.analogtv.launcher.CalendarPageView
+                    android:id="@+id/calPage"
+                    android:layout_width="78dp"
+                    android:layout_height="78dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/calHijri"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="marquee"
+                        android:marqueeRepeatLimit="marquee_forever"
+                        android:singleLine="true"
+                        android:textColor="#FFFFFF"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:shadowColor="#AA000000"
+                        android:shadowDx="1"
+                        android:shadowDy="2"
+                        android:shadowRadius="3" />
+
+                    <TextView
+                        android:id="@+id/calGreg"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="marquee"
+                        android:marqueeRepeatLimit="marquee_forever"
+                        android:singleLine="true"
+                        android:textColor="#CCFFFFFF"
+                        android:textSize="12sp"
+                        android:shadowColor="#AA000000"
+                        android:shadowDx="1"
+                        android:shadowDy="2"
+                        android:shadowRadius="3" />
+
+                    <TextView
+                        android:id="@+id/calEvent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="marquee"
+                        android:marqueeRepeatLimit="marquee_forever"
+                        android:singleLine="true"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:shadowColor="#AA000000"
+                        android:shadowDx="1"
+                        android:shadowDy="2"
+                        android:shadowRadius="3" />
+
+                    <TextView
+                        android:id="@+id/calNext"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="marquee"
+                        android:marqueeRepeatLimit="marquee_forever"
+                        android:singleLine="true"
+                        android:textColor="#BBFFFFFF"
+                        android:textSize="11sp"
+                        android:shadowColor="#AA000000"
+                        android:shadowDx="1"
+                        android:shadowDy="2"
+                        android:shadowRadius="3" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
@@ -374,8 +542,8 @@
     <LinearLayout
         android:id="@+id/tilesRow"
         android:layout_width="match_parent"
-        android:layout_height="104dp"
-        android:layout_marginTop="8dp"
+        android:layout_height="108dp"
+        android:layout_marginTop="6dp"
         android:orientation="horizontal">
 
         <LinearLayout
@@ -386,6 +554,7 @@
             android:layout_margin="5dp"
             android:gravity="center"
             android:orientation="vertical"
+            android:paddingBottom="8dp"
             android:clickable="true"
             android:focusable="true">
             <com.analogtv.launcher.IconView
@@ -397,13 +566,17 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:paddingTop="4dp"
+                android:paddingTop="2dp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:text="Live TV"
                 android:textColor="#FFFFFF"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+            android:shadowColor="#AA000000"
+            android:shadowDx="1"
+            android:shadowDy="2"
+            android:shadowRadius="3" />
         </LinearLayout>
         <LinearLayout
             android:id="@+id/tileYoutube"
@@ -413,6 +586,7 @@
             android:layout_margin="5dp"
             android:gravity="center"
             android:orientation="vertical"
+            android:paddingBottom="8dp"
             android:clickable="true"
             android:focusable="true">
             <com.analogtv.launcher.IconView
@@ -424,13 +598,17 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:paddingTop="4dp"
+                android:paddingTop="2dp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:text="YouTube"
                 android:textColor="#FFFFFF"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+            android:shadowColor="#AA000000"
+            android:shadowDx="1"
+            android:shadowDy="2"
+            android:shadowRadius="3" />
         </LinearLayout>
         <LinearLayout
             android:id="@+id/tilePlayStore"
@@ -440,6 +618,7 @@
             android:layout_margin="5dp"
             android:gravity="center"
             android:orientation="vertical"
+            android:paddingBottom="8dp"
             android:clickable="true"
             android:focusable="true">
             <com.analogtv.launcher.IconView
@@ -451,13 +630,17 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:paddingTop="4dp"
+                android:paddingTop="2dp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:text="Play Store"
                 android:textColor="#FFFFFF"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+            android:shadowColor="#AA000000"
+            android:shadowDx="1"
+            android:shadowDy="2"
+            android:shadowRadius="3" />
         </LinearLayout>
         <LinearLayout
             android:id="@+id/tileSettings"
@@ -467,6 +650,7 @@
             android:layout_margin="5dp"
             android:gravity="center"
             android:orientation="vertical"
+            android:paddingBottom="8dp"
             android:clickable="true"
             android:focusable="true">
             <com.analogtv.launcher.IconView
@@ -478,13 +662,17 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:paddingTop="4dp"
+                android:paddingTop="2dp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:text="Settings"
                 android:textColor="#FFFFFF"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+            android:shadowColor="#AA000000"
+            android:shadowDx="1"
+            android:shadowDy="2"
+            android:shadowRadius="3" />
         </LinearLayout>
         <LinearLayout
             android:id="@+id/tileAllApps"
@@ -494,6 +682,7 @@
             android:layout_margin="5dp"
             android:gravity="center"
             android:orientation="vertical"
+            android:paddingBottom="8dp"
             android:clickable="true"
             android:focusable="true">
             <com.analogtv.launcher.IconView
@@ -505,13 +694,17 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:paddingTop="4dp"
+                android:paddingTop="2dp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:text="All Apps"
                 android:textColor="#FFFFFF"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+            android:shadowColor="#AA000000"
+            android:shadowDx="1"
+            android:shadowDy="2"
+            android:shadowRadius="3" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
