@@ -38,7 +38,7 @@ class AllAppsActivity : Activity() {
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            background = ThemeManager.background(this)
+            background = ThemeManager.background(this@AllAppsActivity)
             setPadding(dpi(32), dpi(20), dpi(32), dpi(16))
         }
         root.addView(TextView(this).apply {
