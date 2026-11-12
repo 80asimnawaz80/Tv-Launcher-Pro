@@ -54,7 +54,8 @@ class MainActivity : Activity() {
         BUFFERING("Buffering", 2, 0xFFFFC107.toInt()),
         GOOD("Good", 3, 0xFF3DDC4A.toInt()),
         OFFLINE("No Signal", 0, 0xFFFF4D4D.toInt()),
-        PAUSED("Paused", 0, 0xFF9AA0B5.toInt())
+        PAUSED("Paused", 0, 0xFF9AA0B5.toInt()),
+        YOUTUBE("YouTube", 3, 0xFFFF4D4D.toInt())
     }
 
     private lateinit var prefs: SharedPreferences
@@ -87,6 +88,7 @@ class MainActivity : Activity() {
     private lateinit var pipToast: TextView
     private lateinit var ctlMute: IconView
     private lateinit var ctlPlay: IconView
+    private lateinit var yt: YoutubePip
     private var userPaused = false
     private val reqWallpaper = 7711
     private lateinit var liveBadge: TextView
@@ -158,7 +160,7 @@ class MainActivity : Activity() {
         applyTheme()
         useRealIcon(findViewById(R.id.tileYoutube), youtubePkgs)
         useRealIcon(findViewById(R.id.tilePlayStore), playStorePkgs)
-        startPip()
+        resumeMedia()
         refreshWeather()
     }
 
@@ -167,6 +169,7 @@ class MainActivity : Activity() {
         handler.removeCallbacks(weatherRunnable)
         handler.removeCallbacks(calendarRunnable)
         handler.removeCallbacks(hideControls)
+        yt.suspend()
         stopPip()
         super.onStop()
     }
@@ -213,6 +216,7 @@ class MainActivity : Activity() {
         pipToast = findViewById(R.id.pipToast)
         ctlMute = findViewById(R.id.ctlMute)
         ctlPlay = findViewById(R.id.ctlPlay)
+        yt = YoutubePip(this, pipCard)
         liveBadge = findViewById(R.id.liveBadge)
         qualityText = findViewById(R.id.qualityText)
         sizeLabel = findViewById(R.id.sizeLabel)
@@ -287,16 +291,14 @@ class MainActivity : Activity() {
         findViewById<View>(R.id.btnMinus).setOnClickListener { changeSize(-1) }
         findViewById<View>(R.id.btnPlus).setOnClickListener { changeSize(+1) }
 
-        val openFullscreen = View.OnClickListener {
-            startActivity(Intent(this, PlayerActivity::class.java))
-        }
+        val openFullscreen = View.OnClickListener { openFullscreenPlayer() }
         pipCard.setOnClickListener {
             // Touch screen par pehla tap sirf buttons dikhata hai, doosra fullscreen kholta hai.
             if (pipCard.isInTouchMode && pipControls.visibility != View.VISIBLE) showControls()
-            else startActivity(Intent(this, PlayerActivity::class.java))
+            else openFullscreenPlayer()
         }
         findViewById<View>(R.id.btnFullscreen).setOnClickListener(openFullscreen)
-        findViewById<View>(R.id.tilePlayer).setOnClickListener(openFullscreen)
+        findViewById<View>(R.id.tilePlayer).setOnClickListener { startActivity(Intent(this, PlayerActivity::class.java)) }
         pipCard.setOnLongClickListener { showChannelMenu(); true }
         // PIP par focus ho to LEFT / RIGHT se channel badlein (jab playlist ho)
         pipCard.setOnKeyListener { _, keyCode, event ->
@@ -353,6 +355,7 @@ class MainActivity : Activity() {
         findViewById<View>(R.id.tileYoutube).setOnClickListener {
             launchFirst(youtubePkgs, "YouTube install nahi hai")
         }
+        findViewById<View>(R.id.tileYoutube).setOnLongClickListener { showYoutubeDialog(); true }
         findViewById<View>(R.id.tilePlayStore).setOnClickListener {
             launchFirst(playStorePkgs, "Play Store is device par nahi hai")
         }
@@ -561,6 +564,7 @@ class MainActivity : Activity() {
 
     private fun applyVolume() {
         player?.volume = if (isSound()) volume() else 0f
+        if (yt.active) yt.setSound(isSound(), Math.round(volume() * 100))
         updateMuteIcon()
     }
 
@@ -639,11 +643,19 @@ class MainActivity : Activity() {
     }
 
     private fun reloadStream() {
+        if (yt.active) {
+            yt.stop()
+            prefs.edit().remove("yt_active").apply()
+        }
         stopPip()
         if (visible) startPip()
     }
 
     private fun changeChannel(delta: Int) {
+        if (yt.active) {
+            if (delta > 0) yt.next() else yt.prev()
+            return
+        }
         if (Channels.step(prefs, delta) != null) playCurrent()
         else toast("Channel list khali hai - PIP par long-press karke playlist (M3U) lagayein")
     }
@@ -959,6 +971,13 @@ class MainActivity : Activity() {
     private fun slowMode(): Boolean = prefs.getBoolean("slow", true)
 
     private fun togglePlay() {
+        if (yt.active) {
+            userPaused = !userPaused
+            if (userPaused) yt.pause() else yt.play()
+            updatePlayIcon()
+            pipMessage(if (userPaused) "Paused" else "Play")
+            return
+        }
         val p = player ?: return
         if (userPaused) {
             userPaused = false
@@ -1222,6 +1241,104 @@ class MainActivity : Activity() {
             .show()
     }
 
+    // ================================================================ YouTube in PIP
+
+    private fun ytSaved(): List<String> =
+        (prefs.getString("yt_saved", "") ?: "").split("\n").filter { it.isNotBlank() }
+
+    private fun ytAdd(spec: String) {
+        val list = (listOf(spec) + ytSaved().filter { it != spec }).take(8)
+        prefs.edit().putString("yt_saved", list.joinToString("\n")).apply()
+    }
+
+    private fun resumeMedia() {
+        val saved = prefs.getString("yt_active", null)
+        val ref = if (saved != null) YoutubePip.parse(saved) else null
+        if (ref != null) startYoutube(ref) else startPip()
+    }
+
+    private fun startYoutube(ref: YoutubePip.Ref) {
+        stopPip()
+        if (!yt.start(ref, !isSound(), Math.round(volume() * 100))) {
+            toast("Is device par WebView nahi hai - YouTube PIP nahi chalega")
+            prefs.edit().remove("yt_active").apply()
+            startPip()
+            return
+        }
+        userPaused = false
+        updatePlayIcon()
+        setStatus(Status.YOUTUBE)
+        channelName.text = "YouTube"
+    }
+
+    private fun playYoutube(spec: String) {
+        val t = spec.trim()
+        val ref = YoutubePip.parse(t)
+        if (ref == null) {
+            toast("Ye YouTube link samajh nahi aaya")
+            return
+        }
+        ytAdd(t)
+        prefs.edit().putString("yt_active", t).apply()
+        startYoutube(ref)
+    }
+
+    private fun stopYoutubeToTv() {
+        yt.stop()
+        prefs.edit().remove("yt_active").apply()
+        startPip()
+    }
+
+    private fun askYoutubeLink() {
+        val et = EditText(this)
+        et.hint = "https://youtu.be/...  ya  video ID"
+        et.setSingleLine(true)
+        try {
+            val cm = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            val clip = cm.primaryClip?.getItemAt(0)?.text?.toString()
+            if (clip != null && YoutubePip.parse(clip) != null) et.setText(clip)
+        } catch (e: Exception) {
+            // clipboard na mile to koi baat nahi
+        }
+        AlertDialog.Builder(this)
+            .setTitle("YouTube link / video ID")
+            .setView(et)
+            .setPositiveButton("Play") { _, _ -> playYoutube(et.text.toString()) }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showYoutubeDialog() {
+        val saved = ytSaved()
+        val items = ArrayList<String>()
+        items.add("\u2795  Naya YouTube link / video ID")
+        for (sv in saved) items.add("\u25B6  " + sv.take(46))
+        if (yt.active) items.add("\u23F9  YouTube band karein (TV par wapas)")
+        AlertDialog.Builder(this)
+            .setTitle("YouTube in PIP")
+            .setItems(items.toTypedArray()) { _, which ->
+                when {
+                    which == 0 -> askYoutubeLink()
+                    which <= saved.size -> playYoutube(saved[which - 1])
+                    else -> stopYoutubeToTv()
+                }
+            }
+            .setNegativeButton("Band", null)
+            .show()
+    }
+
+    private fun openFullscreenPlayer() {
+        if (yt.active) {
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(yt.watchUrl())))
+            } catch (e: Exception) {
+                toast("YouTube app / browser nahi mila")
+            }
+        } else {
+            startActivity(Intent(this, PlayerActivity::class.java))
+        }
+    }
+
     // ================================================================ dialogs
 
     private fun showSettingsDialog() {
@@ -1234,6 +1351,7 @@ class MainActivity : Activity() {
             "Widgets: add / delete / resize",
             "Islamic calendar / Hijri date adjust",
             "Background (picture / colour)",
+            "YouTube in PIP (link se)",
             if (slow) "Slow internet mode: ON  (band karein)" else "Slow internet mode: OFF  (on karein)",
             if (sound) "PIP awaaz: ON  (mute karein)" else "PIP awaaz: OFF  (on karein)",
             "Is app ko default launcher banayein"
@@ -1248,13 +1366,14 @@ class MainActivity : Activity() {
                     3 -> showWidgetsDialog()
                     4 -> showCalendarDialog()
                     5 -> showBackgroundDialog()
-                    6 -> {
+                    6 -> showYoutubeDialog()
+                    7 -> {
                         prefs.edit().putBoolean("slow", !slow).apply()
                         toast(if (!slow) "Slow internet mode ON" else "Slow internet mode OFF")
                         reloadStream()
                     }
-                    7 -> toggleMute()
-                    8 -> openHomeSettings()
+                    8 -> toggleMute()
+                    9 -> openHomeSettings()
                 }
             }
             .show()
