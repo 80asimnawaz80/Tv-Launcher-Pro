@@ -107,7 +107,7 @@ class MainActivity : Activity() {
     )
     private val widgetTitles = mapOf("weather" to "Weather", "clock" to "Clock", "calendar" to "Calendar (Islamic)")
     private val sizeWeights = floatArrayOf(0.6f, 1f, 1.5f)
-    private val sizeNames = arrayOf("Small", "Normal", "Large")
+    private val widgetSizeNames = arrayOf("Small", "Normal", "Large")
     private lateinit var weatherTemp: TextView
     private lateinit var weatherDesc: TextView
     private lateinit var weatherCity: TextView
@@ -1207,7 +1207,7 @@ class MainActivity : Activity() {
     private fun showWidgetsDialog() {
         val keys = widgetIds.keys.toList()
         val items = keys.map { k ->
-            widgetTitles[k] + "  -  " + (if (widgetVisible(k)) sizeNames[widgetSize(k)] else "Hidden (add karein)")
+            widgetTitles[k] + "  -  " + (if (widgetVisible(k)) widgetSizeNames[widgetSize(k)] else "Hidden (add karein)")
         }
         AlertDialog.Builder(this)
             .setTitle("Widgets: add / delete / resize")
