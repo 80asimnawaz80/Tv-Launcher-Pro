@@ -353,61 +353,70 @@
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingStart="16dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="16dp">
+                android:paddingStart="14dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="14dp">
 
                 <com.analogtv.launcher.WeatherIconView
                     android:id="@+id/weatherIcon"
-                    android:layout_width="76dp"
-                    android:layout_height="76dp" />
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.9" />
 
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
-                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1.1"
+                    android:gravity="center_vertical"
                     android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/weatherTemp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical|start"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
                         android:text="--°C"
                         android:textColor="#FFFFFF"
-                        android:textSize="28sp"
+                        android:textSize="48sp"
                         android:textStyle="bold"
-    android:shadowColor="#AA000000"
-    android:shadowDx="1"
-    android:shadowDy="2"
-    android:shadowRadius="3" />
+                        android:shadowColor="#AA000000"
+                        android:shadowDx="2"
+                        android:shadowDy="3"
+                        android:shadowRadius="5" />
 
                     <TextView
                         android:id="@+id/weatherDesc"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
                         android:text="Loading..."
-                        android:textColor="#EEFFFFFF"
-                        android:textSize="15sp"
-    android:shadowColor="#AA000000"
-    android:shadowDx="1"
-    android:shadowDy="2"
-    android:shadowRadius="3" />
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:shadowColor="#AA000000"
+                        android:shadowDx="1"
+                        android:shadowDy="2"
+                        android:shadowRadius="3" />
 
                     <TextView
                         android:id="@+id/weatherCity"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:text="📍 --"
-                        android:textColor="#CCFFFFFF"
-                        android:textSize="13sp"
-    android:shadowColor="#AA000000"
-    android:shadowDx="1"
-    android:shadowDy="2"
-    android:shadowRadius="3" />
+                        android:textColor="#EEFFFFFF"
+                        android:textSize="16sp"
+                        android:shadowColor="#AA000000"
+                        android:shadowDx="1"
+                        android:shadowDy="2"
+                        android:shadowRadius="3" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -425,6 +434,12 @@
                 android:paddingTop="10dp"
                 android:paddingEnd="16dp"
                 android:paddingBottom="16dp">
+
+                <com.analogtv.launcher.FlipClockView
+                    android:id="@+id/flipClock"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
 
                 <com.analogtv.launcher.AnalogClockView
                     android:id="@+id/analogClock"
